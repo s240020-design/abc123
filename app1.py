@@ -32,8 +32,8 @@ with st.form('comment_form'):
     submitted = st.form_submit_button("Post comment")
 
 if submitted:
-    response_body = {
+    request_body = {
         "name": "Maya" , "passcode": "123456" , "message" : "Great lesson!"
     }
 
-    post_response = requests.post(COMMENTS_URL)
+    post_response = requests.post(COMMENTS_URL,)
