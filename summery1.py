@@ -31,7 +31,7 @@ if user_input:
                 "role": "system",
                 "content": (
                       "Extract Stop ID",
-                      'in json format: {"stop_id": "SCH-01"| "SCH-02"}| "SCH-03"}'
+                      'strictly in this json format: {"stop_id": "SCH-01"| "SCH-02"}| "SCH-03"}'
                       "SCH-01 is main gate",
                       "SCH-02 is MTR station side",
                       "SCH-03 is Sports ground"
@@ -43,19 +43,23 @@ if user_input:
             },
             {
                   "role": "assistant",
-                  "content": "{'stop_id': 'SCH-01'}",
+                  'content': '{"stop_id": "SCH-01"}',
             },
             {
                   "role": "user",
                   "content": "I am at Sport Ground right now"
             },
+            {     "role": "assistant",
+                  'content':'{"stop_id": "SCH-02"}'
+                  
+            }, 
             {
                     "role": "user",
-                    "content": "I am at Sport Ground right now"
+                    "content": "I am at mtr station right now"
             },
             {
                   "role": "assistant",
-                  "content": "{'stop_id': 'SCH-03'}",
+                  'content': '{"stop_id": "SCH-03"}',
             },
             {
                    "role": "user",
@@ -86,11 +90,29 @@ for message in st.session_state.messages:
     )
 
 reply_json = json.loads(reply)
-    stop_id = reply_json['stop_id']
+stop_id = reply_json['stop_id']
 
-    response = request.get(
+response = request.get(
       "https://ai-edu.sillykeungvalley.tech/api/v1/final/bus/arrivals",
       params={'stop_id: stop_id'}
     )
-    response_json = response.json()
-    st.json(response_json)
+api_data = response.json()
+
+context = (
+      f"Stop ID: {api_data['stop_id']}",
+      f"Stop name: {api_data['stop_name']}",
+      f"Buses: {api_data['buses']}",
+)
+
+final_response = request_post(
+      POE_API_URL,
+      headers=POE_HEADERS,
+      json={
+            "model" [
+                  {"role": "system", "content": f"Use this live data:\n{context}"},
+                  {"role": "user", "content":user_input},
+            ],
+      },
+      time=30,
+)
+reply = final_response.json()["choices"][0]["message"]["content"]
